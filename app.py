@@ -5,6 +5,7 @@ import requests
 import base64
 from datetime import datetime
 import plotly.express as px
+import re
 
 # =========================================================================
 # 🔐 MENGAMBIL DATA REPO & TOKEN AMAN DARI STREAMLIT SECRETS (GRATIS)
@@ -25,6 +26,10 @@ st.set_page_config(
     layout="centered",
     initial_sidebar_state="expanded"
 )
+
+# FUNGSI FILTER FORMAT BIAYA BER-TITIK KE ANGKA MENTAH
+def clean_numeric_string(s):
+    return int(re.sub(r'[^\d]', '', s)) if re.sub(r'[^\d]', '', s) else 0
 
 # =========================================================================
 # FUNGSI OTOMATIS SYNC KE GITHUB
@@ -103,37 +108,45 @@ else:
     st.sidebar.success("Status: Admin Aktif (Mas Lian)")
     
     st.sidebar.write("---")
-    with st.sidebar.form("form_tambah_pengeluaran", clear_on_submit=True):
-        st.subheader("➕ Tambah Catatan")
-        # Kolom langsung dimulai dari Kategori
-        input_kategori = st.selectbox("Kategori Pengeluaran:", categories_list)
-        input_biaya = st.number_input("Nominal Biaya (Rp):", min_value=0, step=1000, value=0)
-        input_catatan = st.text_area("Catatan Tambahan (Opsional):", placeholder="Misal: Rest Area KM 57, tambal ban belakang...")
-        
-        submit_button = st.form_submit_button("Simpan Pengeluaran", use_container_width=True)
-        
-        if submit_button:
-            if input_biaya <= 0:
-                st.sidebar.error("Gagal! Nominal biaya harus lebih dari Rp0.")
-            else:
-                waktu_sekarang = datetime.now().strftime("%Y-%m-%d %H:%M")
-                expense_list.append({
-                    "waktu": waktu_sekarang,
-                    "item": input_kategori, # Otomatis menggunakan nama kategori sebagai judul item
-                    "kategori": input_kategori,
-                    "biaya": input_biaya,
-                    "catatan": input_catatan.strip()
-                })
-                save_turing_data({"expenses": expense_list, "categories": categories_list})
-                st.sidebar.success("Pengeluaran berhasil dicatat!")
-                st.rerun()
+    
+    # KITA TIDAK PAKAI st.sidebar.form AGAR FORMAT TITIK BISA JALAN REALTIME SAAT DIKETIK
+    st.sidebar.subheader("➕ Tambah Catatan")
+    input_kategori = st.sidebar.selectbox("Kategori Pengeluaran:", categories_list)
+    
+    # Menggunakan text_input agar bisa memproses string dengan format titik asli Indonesia
+    raw_biaya = st.sidebar.text_input("Nominal Biaya (Rp):", value="0", placeholder="Contoh: 50.000")
+    
+    # Trik pengubah otomatis teks input menjadi format tampilan titik di bawahnya agar tidak bingung angka nol
+    int_biaya = clean_numeric_string(raw_biaya)
+    if int_biaya > 0:
+        st.sidebar.caption(f"Konfirmasi Nominal: **Rp {int_biaya:,.0f}**.000".replace(",", ".").replace(".000", ""))
+
+    input_catatan = st.sidebar.text_area("Catatan Tambahan (Opsional):", placeholder="Misal: Rest Area KM 57...")
+    
+    submit_button = st.sidebar.button("Simpan Pengeluaran", use_container_width=True, type="primary")
+    
+    if submit_button:
+        if int_biaya <= 0:
+            st.sidebar.error("Gagal! Nominal biaya harus lebih dari Rp0.")
+        else:
+            waktu_sekarang = datetime.now().strftime("%Y-%m-%d %H:%M")
+            expense_list.append({
+                "waktu": waktu_sekarang,
+                "item": input_kategori,
+                "kategori": input_kategori,
+                "biaya": int_biaya,
+                "catatan": input_catatan.strip()
+            })
+            save_turing_data({"expenses": expense_list, "categories": categories_list})
+            st.sidebar.success("Pengeluaran berhasil dicatat!")
+            st.rerun()
 
     # MENU RESET DATA (HANYA UNTUK ADMIN)
     st.sidebar.write("---")
     st.sidebar.subheader("🚨 Zona Bahaya")
     
     if not st.session_state.confirm_reset:
-        if st.sidebar.button("🗑️ Reset Semua Data", use_container_width=True, type="primary"):
+        if st.sidebar.button("🗑️ Reset Semua Data", use_container_width=True):
             st.session_state.confirm_reset = True
             st.rerun()
     else:
@@ -144,7 +157,7 @@ else:
             empty_data = {"expenses": [], "categories": categories_list}
             save_turing_data(empty_data)
             st.session_state.confirm_reset = False
-            st.sidebar.success("Database berhasil dibersihkan kembali ke nol!")
+            st.sidebar.success("Database berhasil dibersihkan!")
             st.rerun()
             
         if col_no.button("Batal", use_container_width=True):
@@ -176,7 +189,7 @@ st.markdown("---")
 # Hitung Total Pengeluaran Keseluruhan
 total_dana = sum(item["biaya"] for item in expense_list)
 
-# Tampilan Ringkasan dalam Metrik Utama (Menggunakan format titik ribuan)
+# Tampilan Ringkasan dalam Metrik Utama (Format Titik Indonesia)
 col_total, col_jumlah_transaksi = st.columns(2)
 with col_total:
     st.metric(label="💰 Total Pengeluaran Turing", value=f"Rp {total_dana:,.0f}".replace(",", "."))
@@ -226,8 +239,6 @@ if expense_list_reversed:
         emoji = emoji_dict.get(item["kategori"], "💰")
         
         original_idx = len(expense_list) - 1 - idx
-        
-        # Format judul list menggunakan titik pemisah ribuan asli Indonesia
         formatted_biaya = f"Rp {item['biaya']:,.0f}".replace(",", ".")
         
         with st.expander(f"{emoji} {item['kategori']} — {formatted_biaya}"):
