@@ -105,21 +105,21 @@ else:
     st.sidebar.write("---")
     with st.sidebar.form("form_tambah_pengeluaran", clear_on_submit=True):
         st.subheader("➕ Tambah Catatan")
-        input_item = st.text_input("Nama Pengeluaran / Keperluan:", placeholder="Contoh: Bensin Pertamax")
-        input_kategori = st.selectbox("Pilih Kategori:", categories_list)
+        # Kolom langsung dimulai dari Kategori
+        input_kategori = st.selectbox("Kategori Pengeluaran:", categories_list)
         input_biaya = st.number_input("Nominal Biaya (Rp):", min_value=0, step=1000, value=0)
-        input_catatan = st.text_area("Catatan Tambahan (Opsional):", placeholder="Misal: KM roda, bensin full tank...")
+        input_catatan = st.text_area("Catatan Tambahan (Opsional):", placeholder="Misal: Rest Area KM 57, tambal ban belakang...")
         
         submit_button = st.form_submit_button("Simpan Pengeluaran", use_container_width=True)
         
         if submit_button:
-            if input_item.strip() == "" or input_biaya <= 0:
-                st.sidebar.error("Gagal! Nama pengeluaran harus diisi & nominal > Rp0.")
+            if input_biaya <= 0:
+                st.sidebar.error("Gagal! Nominal biaya harus lebih dari Rp0.")
             else:
                 waktu_sekarang = datetime.now().strftime("%Y-%m-%d %H:%M")
                 expense_list.append({
                     "waktu": waktu_sekarang,
-                    "item": input_item.strip(),
+                    "item": input_kategori, # Otomatis menggunakan nama kategori sebagai judul item
                     "kategori": input_kategori,
                     "biaya": input_biaya,
                     "catatan": input_catatan.strip()
@@ -176,22 +176,18 @@ st.markdown("---")
 # Hitung Total Pengeluaran Keseluruhan
 total_dana = sum(item["biaya"] for item in expense_list)
 
-# Tampilan Ringkasan dalam Metrik Utama
+# Tampilan Ringkasan dalam Metrik Utama (Menggunakan format titik ribuan)
 col_total, col_jumlah_transaksi = st.columns(2)
 with col_total:
-    st.metric(label="💰 Total Pengeluaran Turing", value=f"Rp {total_dana:,}")
+    st.metric(label="💰 Total Pengeluaran Turing", value=f"Rp {total_dana:,.0f}".replace(",", "."))
 with col_jumlah_transaksi:
     st.metric(label="📊 Jumlah Catatan", value=f"{len(expense_list)} Item")
 
 st.markdown("---")
 
-# =========================================================================
-# 📈 FITUR GRAFIK: MODEL LIPAT (EXPANDER)
-# =========================================================================
+# --- FITUR GRAFIK ---
 if expense_list:
-    # Grafik dibungkus expander agar rapi dan bisa dilipat/buka manual
     with st.expander("🍕 Lihat Grafik Distribusi Biaya"):
-        # Kelompokkan total biaya per kategori
         category_totals = {}
         for item in expense_list:
             cat = item["kategori"]
@@ -212,7 +208,6 @@ if expense_list:
         
         st.plotly_chart(fig, use_container_width=True)
     st.markdown("---")
-# =========================================================================
 
 # Urutkan dari yang paling baru diinput
 expense_list_reversed = list(reversed(expense_list))
@@ -231,13 +226,15 @@ if expense_list_reversed:
         emoji = emoji_dict.get(item["kategori"], "💰")
         
         original_idx = len(expense_list) - 1 - idx
-        with st.expander(f"{emoji} {item['item']} — Rp {item['biaya']:,}"):
+        
+        # Format judul list menggunakan titik pemisah ribuan asli Indonesia
+        formatted_biaya = f"Rp {item['biaya']:,.0f}".replace(",", ".")
+        
+        with st.expander(f"{emoji} {item['kategori']} — {formatted_biaya}"):
             st.write(f"📅 **Waktu:** {item['waktu']}")
-            st.write(f"📁 **Kategori:** {item['kategori']}")
             if item['catatan']:
                 st.info(f"📝 **Catatan:**\n{item['catatan']}")
                 
-            # Tombol Hapus Hanya Muncul Jika Statusnya Sudah Login Admin
             if st.session_state.is_admin:
                 if st.button("🗑️ Hapus Catatan Ini", key=f"del_{original_idx}", use_container_width=True):
                     expense_list.pop(original_idx)
