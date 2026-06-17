@@ -13,6 +13,13 @@
             "kategori": "Lain-lain",
             "biaya": 10000,
             "catatan": "parkir di pom"
+        },
+        {
+            "waktu": "2026-06-17 07:02",
+            "item": "Bensin",
+            "kategori": "Bensin",
+            "biaya": 9000,
+            "catatan": "sdfa"
         }
     ],
     "categories": [
