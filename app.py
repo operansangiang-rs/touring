@@ -4,6 +4,7 @@ import os
 import requests
 import base64
 from datetime import datetime
+import plotly.express as px
 
 # =========================================================================
 # 🔐 MENGAMBIL DATA REPO & TOKEN AMAN DARI STREAMLIT SECRETS (GRATIS)
@@ -81,7 +82,6 @@ categories_list = shared_data["categories"]
 if "is_admin" not in st.session_state:
     st.session_state.is_admin = False
 
-# State untuk konfirmasi reset data
 if "confirm_reset" not in st.session_state:
     st.session_state.confirm_reset = False
 
@@ -102,7 +102,6 @@ if not st.session_state.is_admin:
 else:
     st.sidebar.success("Status: Admin Aktif (Mas Lian)")
     
-    # Tampilkan Form Input Hanya Jika Sudah Login Sukses
     st.sidebar.write("---")
     with st.sidebar.form("form_tambah_pengeluaran", clear_on_submit=True):
         st.subheader("➕ Tambah Catatan")
@@ -138,11 +137,10 @@ else:
             st.session_state.confirm_reset = True
             st.rerun()
     else:
-        st.sidebar.warning("⚠️ YAKIN INGIN RESET DATA? Semua catatan turing akan dihapus permanen dari GitHub!")
+        st.sidebar.warning("⚠️ YAKIN INGIN RESET DATA?")
         col_yes, col_no = st.sidebar.columns(2)
         
         if col_yes.button("Ya, Hapus", use_container_width=True, type="primary"):
-            # Proses mengosongkan data kembali ke awal
             empty_data = {"expenses": [], "categories": categories_list}
             save_turing_data(empty_data)
             st.session_state.confirm_reset = False
@@ -169,7 +167,7 @@ with col_judul:
 with col_btn_sync:
     st.write("") 
     st.write("") 
-    if st.button("🔄 Sinkron Data", use_container_width=True, help="Klik untuk memuat ulang data pengeluaran terbaru dari GitHub"):
+    if st.button("🔄 Sinkron Data", use_container_width=True):
         st.rerun()
 
 st.write("Pantau rincian biaya pengeluaran turing Anda secara real-time dan aman.")
@@ -186,6 +184,36 @@ with col_jumlah_transaksi:
     st.metric(label="📊 Jumlah Catatan", value=f"{len(expense_list)} Item")
 
 st.markdown("---")
+
+# =========================================================================
+# 📈 FITUR BARU: GRAFIK DIAGRAM LINGKARAN (PIE CHART)
+# =========================================================================
+if expense_list:
+    st.subheader("🍕 Grafik Distribusi Biaya")
+    
+    # Kelompokkan total biaya per kategori
+    category_totals = {}
+    for item in expense_list:
+        cat = item["kategori"]
+        cost = item["biaya"]
+        category_totals[cat] = category_totals.get(cat, 0) + cost
+        
+    # Siapkan data untuk grafik Plotly
+    chart_labels = list(category_totals.keys())
+    chart_values = list(category_totals.values())
+    
+    fig = px.pie(
+        names=chart_labels, 
+        values=chart_values, 
+        hole=0.3, # Biar tengahnya bolong dikit kayak donat (lebih modis)
+        color_discrete_sequence=px.colors.qualitative.Pastel
+    )
+    fig.update_traces(textposition='inside', textinfo='percent+label')
+    fig.update_layout(margin=dict(t=10, b=10, l=10, r=10), showlegend=False, height=300)
+    
+    st.plotly_chart(fig, use_container_width=True)
+    st.markdown("---")
+# =========================================================================
 
 # Urutkan dari yang paling baru diinput
 expense_list_reversed = list(reversed(expense_list))
