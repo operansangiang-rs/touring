@@ -16,7 +16,6 @@ except Exception:
     REPO_NAME = ""
 # =========================================================================
 
-# Nama file database otomatis yang akan tersimpan di GitHub touring
 DB_FILE = "turing_expenses.json"
 
 st.set_page_config(
@@ -78,37 +77,60 @@ shared_data = load_turing_data()
 expense_list = shared_data["expenses"]
 categories_list = shared_data["categories"]
 
-# --- SIDEBAR: FORM INPUT DATA ---
-st.sidebar.title("🏍️ Log Pengeluaran")
+# --- STATE LOGIN MANAGEMENT ---
+if "is_admin" not in st.session_state:
+    st.session_state.is_admin = False
 
-with st.sidebar.form("form_tambah_pengeluaran", clear_on_submit=True):
-    st.subheader("➕ Tambah Catatan")
-    input_item = st.text_input("Nama Pengeluaran / Keperluan:", placeholder="Contoh: Bensin Pertamax di Rest Area")
-    input_kategori = st.selectbox("Pilih Kategori:", categories_list)
-    input_biaya = st.number_input("Nominal Biaya (Rp):", min_value=0, step=1000, value=0)
-    input_catatan = st.text_area("Catatan Tambahan (Opsional):", placeholder="Misal: KM roda, bensin full tank...")
+# --- SIDEBAR: AKSES ADMIN & LOGIN ---
+st.sidebar.title("🔐 Akses Admin")
+
+if not st.session_state.is_admin:
+    st.sidebar.write("Masukkan password admin untuk mencatat atau menghapus pengeluaran.")
+    admin_password = st.sidebar.text_input("Password Admin", type="password", placeholder="Ketik password di sini...")
     
-    submit_button = st.form_submit_button("Simpan Pengeluaran", use_container_width=True)
-    
-    if submit_button:
-        if input_item.strip() == "" or input_biaya <= 0:
-            st.sidebar.error("Gagal! Nama pengeluaran tidak boleh kosong dan biaya harus lebih dari Rp0.")
-        else:
-            waktu_sekarang = datetime.now().strftime("%Y-%m-%d %H:%M")
-            expense_list.append({
-                "waktu": waktu_sekarang,
-                "item": input_item.strip(),
-                "kategori": input_kategori,
-                "biaya": input_biaya,
-                "catatan": input_catatan.strip()
-            })
-            save_turing_data({"expenses": expense_list, "categories": categories_list})
-            st.sidebar.success("Pengeluaran berhasil dicatat!")
+    if st.sidebar.button("Masuk", use_container_width=True):
+        if admin_password == "123":
+            st.session_state.is_admin = True
+            st.sidebar.success("Login Berhasil! Selamat datang Mas Lian.")
             st.rerun()
+        else:
+            st.sidebar.error("Password salah! Silakan coba lagi.")
+else:
+    st.sidebar.success("Status: Admin Aktif (Mas Lian)")
+    
+    # Tampilkan Form Input Hanya Jika Sudah Login Sukses
+    st.sidebar.write("---")
+    with st.sidebar.form("form_tambah_pengeluaran", clear_on_submit=True):
+        st.subheader("➕ Tambah Catatan")
+        input_item = st.text_input("Nama Pengeluaran / Keperluan:", placeholder="Contoh: Bensin Pertamax")
+        input_kategori = st.selectbox("Pilih Kategori:", categories_list)
+        input_biaya = st.number_input("Nominal Biaya (Rp):", min_value=0, step=1000, value=0)
+        input_catatan = st.text_area("Catatan Tambahan (Opsional):", placeholder="Misal: KM roda, bensin full tank...")
+        
+        submit_button = st.form_submit_button("Simpan Pengeluaran", use_container_width=True)
+        
+        if submit_button:
+            if input_item.strip() == "" or input_biaya <= 0:
+                st.sidebar.error("Gagal! Nama pengeluaran harus diisi & nominal > Rp0.")
+            else:
+                waktu_sekarang = datetime.now().strftime("%Y-%m-%d %H:%M")
+                expense_list.append({
+                    "waktu": waktu_sekarang,
+                    "item": input_item.strip(),
+                    "kategori": input_kategori,
+                    "biaya": input_biaya,
+                    "catatan": input_catatan.strip()
+                })
+                save_turing_data({"expenses": expense_list, "categories": categories_list})
+                st.sidebar.success("Pengeluaran berhasil dicatat!")
+                st.rerun()
 
-st.sidebar.write("---")
-if st.sidebar.button("🔄 Sinkron Ulang Data", use_container_width=True):
-    st.rerun()
+    # Tombol Keluar / Logout
+    st.sidebar.write("---")
+    if st.sidebar.button("Keluar (Logout)", use_container_width=True):
+        st.session_state.is_admin = False
+        st.sidebar.info("Anda telah logout.")
+        st.rerun()
 
 # --- HALAMAN UTAMA ---
 st.title("📊 Catatan Biaya Turing Motor")
@@ -133,7 +155,6 @@ expense_list_reversed = list(reversed(expense_list))
 st.subheader("📋 Rincian Pengeluaran Lengkap")
 if expense_list_reversed:
     for idx, item in enumerate(expense_list_reversed):
-        # Penentuan emoji berdasarkan kategori
         emoji_dict = {
             "Bensin": "⛽",
             "Makan & Minum": "🍽️",
@@ -151,11 +172,12 @@ if expense_list_reversed:
             if item['catatan']:
                 st.info(f"📝 **Catatan:**\n{item['catatan']}")
                 
-            # Tombol Hapus Item jika ada salah input
-            if st.button("🗑️ Hapus Catatan Ini", key=f"del_{original_idx}", use_container_width=True):
-                expense_list.pop(original_idx)
-                save_turing_data({"expenses": expense_list, "categories": categories_list})
-                st.success("Catatan berhasil dihapus!")
-                st.rerun()
+            # Tombol Hapus Hanya Muncul Jika Statusnya Sudah Login Admin
+            if st.session_state.is_admin:
+                if st.button("🗑️ Hapus Catatan Ini", key=f"del_{original_idx}", use_container_width=True):
+                    expense_list.pop(original_idx)
+                    save_turing_data({"expenses": expense_list, "categories": categories_list})
+                    st.success("Catatan berhasil dihapus!")
+                    st.rerun()
 else:
-    st.info("Belum ada pengeluaran yang dicatat. Silakan input rincian lewat menu di sidebar sebelah kiri!")
+    st.info("Belum ada pengeluaran yang dicatat. Silakan masukkan password admin di sidebar untuk mulai mengisi data!")
