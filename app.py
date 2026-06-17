@@ -81,6 +81,10 @@ categories_list = shared_data["categories"]
 if "is_admin" not in st.session_state:
     st.session_state.is_admin = False
 
+# State untuk konfirmasi reset data
+if "confirm_reset" not in st.session_state:
+    st.session_state.confirm_reset = False
+
 # --- SIDEBAR: AKSES ADMIN & LOGIN ---
 st.sidebar.title("🔐 Akses Admin")
 
@@ -125,21 +129,45 @@ else:
                 st.sidebar.success("Pengeluaran berhasil dicatat!")
                 st.rerun()
 
+    # MENU RESET DATA (HANYA UNTUK ADMIN)
+    st.sidebar.write("---")
+    st.sidebar.subheader("🚨 Zona Bahaya")
+    
+    if not st.session_state.confirm_reset:
+        if st.sidebar.button("🗑️ Reset Semua Data", use_container_width=True, type="primary"):
+            st.session_state.confirm_reset = True
+            st.rerun()
+    else:
+        st.sidebar.warning("⚠️ YAKIN INGIN RESET DATA? Semua catatan turing akan dihapus permanen dari GitHub!")
+        col_yes, col_no = st.sidebar.columns(2)
+        
+        if col_yes.button("Ya, Hapus", use_container_width=True, type="primary"):
+            # Proses mengosongkan data kembali ke awal
+            empty_data = {"expenses": [], "categories": categories_list}
+            save_turing_data(empty_data)
+            st.session_state.confirm_reset = False
+            st.sidebar.success("Database berhasil dibersihkan kembali ke nol!")
+            st.rerun()
+            
+        if col_no.button("Batal", use_container_width=True):
+            st.session_state.confirm_reset = False
+            st.rerun()
+
     # Tombol Keluar / Logout
     st.sidebar.write("---")
     if st.sidebar.button("Keluar (Logout)", use_container_width=True):
         st.session_state.is_admin = False
+        st.session_state.confirm_reset = False
         st.sidebar.info("Anda telah logout.")
         st.rerun()
 
 # --- HALAMAN UTAMA ---
-# Menggunakan kolom agar judul dan tombol sinkron sejajar rapi
 col_judul, col_btn_sync = st.columns([7, 3])
 
 with col_judul:
     st.title("📊 Biaya Turing")
 with col_btn_sync:
-    st.write("") # Spasi kosong biar sejajar
+    st.write("") 
     st.write("") 
     if st.button("🔄 Sinkron Data", use_container_width=True, help="Klik untuk memuat ulang data pengeluaran terbaru dari GitHub"):
         st.rerun()
