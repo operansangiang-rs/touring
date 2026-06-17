@@ -133,7 +133,17 @@ else:
         st.rerun()
 
 # --- HALAMAN UTAMA ---
-st.title("📊 Catatan Biaya Turing Motor")
+# Menggunakan kolom agar judul dan tombol sinkron sejajar rapi
+col_judul, col_btn_sync = st.columns([7, 3])
+
+with col_judul:
+    st.title("📊 Biaya Turing")
+with col_btn_sync:
+    st.write("") # Spasi kosong biar sejajar
+    st.write("") 
+    if st.button("🔄 Sinkron Data", use_container_width=True, help="Klik untuk memuat ulang data pengeluaran terbaru dari GitHub"):
+        st.rerun()
+
 st.write("Pantau rincian biaya pengeluaran turing Anda secara real-time dan aman.")
 st.markdown("---")
 
