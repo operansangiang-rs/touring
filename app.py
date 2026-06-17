@@ -186,32 +186,31 @@ with col_jumlah_transaksi:
 st.markdown("---")
 
 # =========================================================================
-# 📈 FITUR BARU: GRAFIK DIAGRAM LINGKARAN (PIE CHART)
+# 📈 FITUR GRAFIK: MODEL LIPAT (EXPANDER)
 # =========================================================================
 if expense_list:
-    st.subheader("🍕 Grafik Distribusi Biaya")
-    
-    # Kelompokkan total biaya per kategori
-    category_totals = {}
-    for item in expense_list:
-        cat = item["kategori"]
-        cost = item["biaya"]
-        category_totals[cat] = category_totals.get(cat, 0) + cost
+    # Grafik dibungkus expander agar rapi dan bisa dilipat/buka manual
+    with st.expander("🍕 Lihat Grafik Distribusi Biaya"):
+        # Kelompokkan total biaya per kategori
+        category_totals = {}
+        for item in expense_list:
+            cat = item["kategori"]
+            cost = item["biaya"]
+            category_totals[cat] = category_totals.get(cat, 0) + cost
+            
+        chart_labels = list(category_totals.keys())
+        chart_values = list(category_totals.values())
         
-    # Siapkan data untuk grafik Plotly
-    chart_labels = list(category_totals.keys())
-    chart_values = list(category_totals.values())
-    
-    fig = px.pie(
-        names=chart_labels, 
-        values=chart_values, 
-        hole=0.3, # Biar tengahnya bolong dikit kayak donat (lebih modis)
-        color_discrete_sequence=px.colors.qualitative.Pastel
-    )
-    fig.update_traces(textposition='inside', textinfo='percent+label')
-    fig.update_layout(margin=dict(t=10, b=10, l=10, r=10), showlegend=False, height=300)
-    
-    st.plotly_chart(fig, use_container_width=True)
+        fig = px.pie(
+            names=chart_labels, 
+            values=chart_values, 
+            hole=0.3,
+            color_discrete_sequence=px.colors.qualitative.Pastel
+        )
+        fig.update_traces(textposition='inside', textinfo='percent+label')
+        fig.update_layout(margin=dict(t=10, b=10, l=10, r=10), showlegend=False, height=300)
+        
+        st.plotly_chart(fig, use_container_width=True)
     st.markdown("---")
 # =========================================================================
 
