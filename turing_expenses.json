@@ -1,20 +1,5 @@
 {
-    "expenses": [
-        {
-            "waktu": "2026-06-17 06:39",
-            "item": "makan",
-            "kategori": "Makan & Minum",
-            "biaya": 100000,
-            "catatan": "cirebon"
-        },
-        {
-            "waktu": "2026-06-17 06:49",
-            "item": "parkir",
-            "kategori": "Lain-lain",
-            "biaya": 10000,
-            "catatan": "parkir di pom"
-        }
-    ],
+    "expenses": [],
     "categories": [
         "Bensin",
         "Makan & Minum",
