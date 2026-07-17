@@ -20,6 +20,13 @@
             "kategori": "Makan & Minum",
             "biaya": 45000,
             "catatan": "ngopi garut"
+        },
+        {
+            "waktu": "2026-07-17 08:03",
+            "item": "Makan & Minum",
+            "kategori": "Makan & Minum",
+            "biaya": 74000,
+            "catatan": "beli ikan 2 kg dan arang"
         }
     ],
     "categories": [
