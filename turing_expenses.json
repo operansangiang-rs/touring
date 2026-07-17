@@ -6,6 +6,13 @@
             "kategori": "Makan & Minum",
             "biaya": 80000,
             "catatan": "makan cianjur"
+        },
+        {
+            "waktu": "2026-07-17 08:02",
+            "item": "Makan & Minum",
+            "kategori": "Makan & Minum",
+            "biaya": 85000,
+            "catatan": "makan garut"
         }
     ],
     "categories": [
