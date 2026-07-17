@@ -13,6 +13,13 @@
             "kategori": "Makan & Minum",
             "biaya": 85000,
             "catatan": "makan garut"
+        },
+        {
+            "waktu": "2026-07-17 08:02",
+            "item": "Makan & Minum",
+            "kategori": "Makan & Minum",
+            "biaya": 45000,
+            "catatan": "ngopi garut"
         }
     ],
     "categories": [
