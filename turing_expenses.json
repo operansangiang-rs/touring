@@ -1,5 +1,13 @@
 {
-    "expenses": [],
+    "expenses": [
+        {
+            "waktu": "2026-07-31 16:31",
+            "item": "Makan & Minum",
+            "kategori": "Makan & Minum",
+            "biaya": 50000,
+            "catatan": "Air indomart"
+        }
+    ],
     "categories": [
         "Bensin",
         "Makan & Minum",
