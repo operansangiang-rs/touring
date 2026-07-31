@@ -20,6 +20,13 @@
             "kategori": "Makan & Minum",
             "biaya": 300000,
             "catatan": "Sarapan"
+        },
+        {
+            "waktu": "2026-07-31 16:32",
+            "item": "Makan & Minum",
+            "kategori": "Makan & Minum",
+            "biaya": 120000,
+            "catatan": "BBQ"
         }
     ],
     "categories": [
