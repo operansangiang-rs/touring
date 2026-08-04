@@ -29,7 +29,7 @@ st.set_page_config(
 
 # FUNGSI FILTER FORMAT BIAYA BER-TITIK KE ANGKA MENTAH
 def clean_numeric_string(s):
-    return int(re.sub(r'[^\d]', '', s)) if re.sub(r'[^\d]', '', s) else 0
+    return int(re.sub(r'[^\d]', '', str(s))) if re.sub(r'[^\d]', '', str(s)) else 0
 
 # =========================================================================
 # FUNGSI OTOMATIS SYNC KE GITHUB
@@ -61,17 +61,24 @@ def push_to_github(data):
             print(f"Gagal sinkronisasi ke GitHub: {e}")
 
 def load_turing_data():
-    if os.path.exists(DB_FILE):
-        try:
-            with open(DB_FILE, "r") as f:
-                return json.load(f)
-        except Exception:
-            pass
-            
-    return {
+    default_data = {
+        "deposit": 0,
         "expenses": [],
         "categories": ["Bensin", "Makan & Minum", "Penginapan", "Tiket Wisata / Tol", "Perbaikan / Sparepart", "Lain-lain"]
     }
+    
+    if os.path.exists(DB_FILE):
+        try:
+            with open(DB_FILE, "r") as f:
+                data = json.load(f)
+                # Memastikan key deposit ada jika membaca file lama
+                if "deposit" not in data:
+                    data["deposit"] = 0
+                return data
+        except Exception:
+            pass
+            
+    return default_data
 
 def save_turing_data(data):
     with open(DB_FILE, "w") as f:
@@ -80,6 +87,7 @@ def save_turing_data(data):
 
 # Load data aktif
 shared_data = load_turing_data()
+deposit_amount = shared_data.get("deposit", 0)
 expense_list = shared_data["expenses"]
 categories_list = shared_data["categories"]
 
@@ -109,17 +117,32 @@ else:
     
     st.sidebar.write("---")
     
-    # KITA TIDAK PAKAI st.sidebar.form AGAR FORMAT TITIK BISA JALAN REALTIME SAAT DIKETIK
+    # 💵 PENGATURAN DEPOSIT UANG (KHUSUS ADMIN)
+    st.sidebar.subheader("💵 Atur Uang Deposit")
+    raw_deposit_input = st.sidebar.text_input(
+        "Nominal Deposit / Modal awal (Rp):", 
+        value=f"{deposit_amount:,}".replace(",", "."), 
+        placeholder="Contoh: 1.500.000"
+    )
+    int_deposit_input = clean_numeric_string(raw_deposit_input)
+    
+    if st.sidebar.button("Simpan Deposit", use_container_width=True):
+        shared_data["deposit"] = int_deposit_input
+        save_turing_data(shared_data)
+        st.sidebar.success("Nominal deposit berhasil diperbarui!")
+        st.rerun()
+
+    st.sidebar.write("---")
+
+    # ➕ TAMBAH CATATAN PENGELUARAN
     st.sidebar.subheader("➕ Tambah Catatan")
     input_kategori = st.sidebar.selectbox("Kategori Pengeluaran:", categories_list)
     
-    # Menggunakan text_input agar bisa memproses string dengan format titik asli Indonesia
     raw_biaya = st.sidebar.text_input("Nominal Biaya (Rp):", value="0", placeholder="Contoh: 50.000")
-    
-    # Trik pengubah otomatis teks input menjadi format tampilan titik di bawahnya agar tidak bingung angka nol
     int_biaya = clean_numeric_string(raw_biaya)
+    
     if int_biaya > 0:
-        st.sidebar.caption(f"Konfirmasi Nominal: **Rp {int_biaya:,.0f}**.000".replace(",", ".").replace(".000", ""))
+        st.sidebar.caption(f"Konfirmasi Nominal: **Rp {int_biaya:,.0f}**".replace(",", "."))
 
     input_catatan = st.sidebar.text_area("Catatan Tambahan (Opsional):", placeholder="Misal: Rest Area KM 57...")
     
@@ -137,7 +160,7 @@ else:
                 "biaya": int_biaya,
                 "catatan": input_catatan.strip()
             })
-            save_turing_data({"expenses": expense_list, "categories": categories_list})
+            save_turing_data({"deposit": deposit_amount, "expenses": expense_list, "categories": categories_list})
             st.sidebar.success("Pengeluaran berhasil dicatat!")
             st.rerun()
 
@@ -154,7 +177,7 @@ else:
         col_yes, col_no = st.sidebar.columns(2)
         
         if col_yes.button("Ya, Hapus", use_container_width=True, type="primary"):
-            empty_data = {"expenses": [], "categories": categories_list}
+            empty_data = {"deposit": 0, "expenses": [], "categories": categories_list}
             save_turing_data(empty_data)
             st.session_state.confirm_reset = False
             st.sidebar.success("Database berhasil dibersihkan!")
@@ -186,16 +209,29 @@ with col_btn_sync:
 st.write("Pantau rincian biaya pengeluaran turing Anda secara real-time dan aman.")
 st.markdown("---")
 
-# Hitung Total Pengeluaran Keseluruhan
+# Hitung Total Pengeluaran Keseluruhan & Sisa Deposit
 total_dana = sum(item["biaya"] for item in expense_list)
+sisa_deposit = deposit_amount - total_dana
 
 # Tampilan Ringkasan dalam Metrik Utama (Format Titik Indonesia)
-col_total, col_jumlah_transaksi = st.columns(2)
-with col_total:
-    st.metric(label="💰 Total Pengeluaran Turing", value=f"Rp {total_dana:,.0f}".replace(",", "."))
-with col_jumlah_transaksi:
-    st.metric(label="📊 Jumlah Catatan", value=f"{len(expense_list)} Item")
+col_dep, col_total, col_sisa = st.columns(3)
 
+with col_dep:
+    st.metric(label="💵 Uang Deposit", value=f"Rp {deposit_amount:,.0f}".replace(",", "."))
+
+with col_total:
+    st.metric(label="💰 Terpakai", value=f"Rp {total_dana:,.0f}".replace(",", "."))
+
+with col_sisa:
+    # Menggunakan delta indikator jika sisa deposit minus/kurang
+    st.metric(
+        label="💳 Sisa Deposit", 
+        value=f"Rp {sisa_deposit:,.0f}".replace(",", "."),
+        delta=f"Rp {sisa_deposit:,.0f}".replace(",", "."),
+        delta_color="normal" if sisa_deposit >= 0 else "inverse"
+    )
+
+st.caption(f"📊 Total Catatan Transaksi: **{len(expense_list)} Item**")
 st.markdown("---")
 
 # --- FITUR GRAFIK ---
@@ -249,7 +285,7 @@ if expense_list_reversed:
             if st.session_state.is_admin:
                 if st.button("🗑️ Hapus Catatan Ini", key=f"del_{original_idx}", use_container_width=True):
                     expense_list.pop(original_idx)
-                    save_turing_data({"expenses": expense_list, "categories": categories_list})
+                    save_turing_data({"deposit": deposit_amount, "expenses": expense_list, "categories": categories_list})
                     st.success("Catatan berhasil dihapus!")
                     st.rerun()
 else:
