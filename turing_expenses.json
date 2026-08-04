@@ -42,13 +42,6 @@
             "kategori": "Makan & Minum",
             "biaya": 60000,
             "catatan": "snack"
-        },
-        {
-            "waktu": "2026-08-04 03:38",
-            "item": "Makan & Minum",
-            "kategori": "Makan & Minum",
-            "biaya": 12000,
-            "catatan": "parkiran"
         }
     ],
     "categories": [
