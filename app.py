@@ -106,7 +106,7 @@ if not st.session_state.is_admin:
     admin_password = st.sidebar.text_input("Password Admin", type="password", placeholder="Ketik password di sini...")
     
     if st.sidebar.button("Masuk", use_container_width=True):
-        if admin_password == "123":
+        if admin_password == "lian":
             st.session_state.is_admin = True
             st.sidebar.success("Login Berhasil! Selamat datang Mas Lian.")
             time.sleep(1)
