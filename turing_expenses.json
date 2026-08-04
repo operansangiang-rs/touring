@@ -1,63 +1,6 @@
 {
-    "deposit": 1500000,
-    "expenses": [
-        {
-            "waktu": "2026-07-31 16:31",
-            "item": "Makan & Minum",
-            "kategori": "Makan & Minum",
-            "biaya": 50000,
-            "catatan": "Air indomart"
-        },
-        {
-            "waktu": "2026-07-31 16:32",
-            "item": "Makan & Minum",
-            "kategori": "Makan & Minum",
-            "biaya": 35000,
-            "catatan": "Kopi"
-        },
-        {
-            "waktu": "2026-07-31 16:32",
-            "item": "Makan & Minum",
-            "kategori": "Makan & Minum",
-            "biaya": 300000,
-            "catatan": "Sarapan"
-        },
-        {
-            "waktu": "2026-07-31 16:32",
-            "item": "Makan & Minum",
-            "kategori": "Makan & Minum",
-            "biaya": 120000,
-            "catatan": "BBQ"
-        },
-        {
-            "waktu": "2026-07-31 16:34",
-            "item": "Tiket Wisata / Tol",
-            "kategori": "Tiket Wisata / Tol",
-            "biaya": 120000,
-            "catatan": "Tiket ppndayan"
-        },
-        {
-            "waktu": "2026-08-04 03:36",
-            "item": "Makan & Minum",
-            "kategori": "Makan & Minum",
-            "biaya": 60000,
-            "catatan": "snack"
-        },
-        {
-            "waktu": "2026-08-04 03:38",
-            "item": "Lain-lain",
-            "kategori": "Lain-lain",
-            "biaya": 12000,
-            "catatan": "parkiran"
-        },
-        {
-            "waktu": "2026-08-04 03:40",
-            "item": "Penginapan",
-            "kategori": "Penginapan",
-            "biaya": 100000,
-            "catatan": "extra bed"
-        }
-    ],
+    "deposit": 0,
+    "expenses": [],
     "categories": [
         "Bensin",
         "Makan & Minum",
