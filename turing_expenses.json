@@ -49,6 +49,13 @@
             "kategori": "Lain-lain",
             "biaya": 12000,
             "catatan": "parkiran"
+        },
+        {
+            "waktu": "2026-08-04 03:40",
+            "item": "Penginapan",
+            "kategori": "Penginapan",
+            "biaya": 100000,
+            "catatan": "extra bed"
         }
     ],
     "categories": [
