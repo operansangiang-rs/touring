@@ -1,6 +1,14 @@
 {
     "deposit": 2400000,
-    "expenses": [],
+    "expenses": [
+        {
+            "waktu": "2026-08-04 03:49",
+            "item": "Makan & Minum",
+            "kategori": "Makan & Minum",
+            "biaya": 32000,
+            "catatan": "Air"
+        }
+    ],
     "categories": [
         "Bensin",
         "Makan & Minum",
