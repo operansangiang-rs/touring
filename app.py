@@ -6,6 +6,7 @@ import base64
 from datetime import datetime
 import plotly.express as px
 import re
+import time  # Ditambahkan untuk memberi jeda notifikasi
 
 # =========================================================================
 # 🔐 MENGAMBIL DATA REPO & TOKEN AMAN DARI STREAMLIT SECRETS (GRATIS)
@@ -108,6 +109,7 @@ if not st.session_state.is_admin:
         if admin_password == "123":
             st.session_state.is_admin = True
             st.sidebar.success("Login Berhasil! Selamat datang Mas Lian.")
+            time.sleep(1)
             st.rerun()
         else:
             st.sidebar.error("Password salah! Silakan coba lagi.")
@@ -128,7 +130,8 @@ else:
     if st.sidebar.button("Simpan Deposit", use_container_width=True):
         shared_data["deposit"] = int_deposit_input
         save_turing_data(shared_data)
-        st.sidebar.success("✅ Nominal deposit berhasil diperbarui!")
+        st.sidebar.success("✅ Deposit berhasil diperbarui!")
+        time.sleep(1.5)
         st.rerun()
 
     st.sidebar.write("---")
@@ -160,7 +163,13 @@ else:
                 "catatan": input_catatan.strip()
             })
             save_turing_data({"deposit": deposit_amount, "expenses": expense_list, "categories": categories_list})
+            
+            # Tampilkan notifikasi di sidebar + pop-up toast ringkas
             st.sidebar.success("✅ Pengeluaran berhasil disimpan!")
+            st.toast("✅ Pengeluaran berhasil disimpan!", icon="🎉")
+            
+            # Jeda 1.5 detik agar pengguna sempat melihat notifikasi
+            time.sleep(1.5)
             st.rerun()
 
     # MENU RESET DATA (HANYA UNTUK ADMIN)
@@ -180,6 +189,7 @@ else:
             save_turing_data(empty_data)
             st.session_state.confirm_reset = False
             st.sidebar.success("✅ Database berhasil dibersihkan!")
+            time.sleep(1.5)
             st.rerun()
             
         if col_no.button("Batal", use_container_width=True):
@@ -192,6 +202,7 @@ else:
         st.session_state.is_admin = False
         st.session_state.confirm_reset = False
         st.sidebar.info("Anda telah logout.")
+        time.sleep(1)
         st.rerun()
 
 # --- HALAMAN UTAMA ---
@@ -285,6 +296,7 @@ if expense_list_reversed:
                     expense_list.pop(original_idx)
                     save_turing_data({"deposit": deposit_amount, "expenses": expense_list, "categories": categories_list})
                     st.success("Catatan berhasil dihapus!")
+                    time.sleep(1.2)
                     st.rerun()
 else:
     st.info("Belum ada pengeluaran yang dicatat. Silakan masukkan password admin di sidebar untuk mulai mengisi data!")
