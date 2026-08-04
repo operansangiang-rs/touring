@@ -71,7 +71,6 @@ def load_turing_data():
         try:
             with open(DB_FILE, "r") as f:
                 data = json.load(f)
-                # Memastikan key deposit ada jika membaca file lama
                 if "deposit" not in data:
                     data["deposit"] = 0
                 return data
@@ -129,7 +128,7 @@ else:
     if st.sidebar.button("Simpan Deposit", use_container_width=True):
         shared_data["deposit"] = int_deposit_input
         save_turing_data(shared_data)
-        st.sidebar.success("Nominal deposit berhasil diperbarui!")
+        st.sidebar.success("✅ Nominal deposit berhasil diperbarui!")
         st.rerun()
 
     st.sidebar.write("---")
@@ -161,7 +160,7 @@ else:
                 "catatan": input_catatan.strip()
             })
             save_turing_data({"deposit": deposit_amount, "expenses": expense_list, "categories": categories_list})
-            st.sidebar.success("Pengeluaran berhasil dicatat!")
+            st.sidebar.success("✅ Pengeluaran berhasil disimpan!")
             st.rerun()
 
     # MENU RESET DATA (HANYA UNTUK ADMIN)
@@ -180,7 +179,7 @@ else:
             empty_data = {"deposit": 0, "expenses": [], "categories": categories_list}
             save_turing_data(empty_data)
             st.session_state.confirm_reset = False
-            st.sidebar.success("Database berhasil dibersihkan!")
+            st.sidebar.success("✅ Database berhasil dibersihkan!")
             st.rerun()
             
         if col_no.button("Batal", use_container_width=True):
@@ -223,7 +222,6 @@ with col_total:
     st.metric(label="💰 Terpakai", value=f"Rp {total_dana:,.0f}".replace(",", "."))
 
 with col_sisa:
-    # Menggunakan delta indikator jika sisa deposit minus/kurang
     st.metric(
         label="💳 Sisa Deposit", 
         value=f"Rp {sisa_deposit:,.0f}".replace(",", "."),
