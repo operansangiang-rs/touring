@@ -9,7 +9,7 @@ import re
 import time
 
 # =========================================================================
-# 🔐 MENGAMBIL DATA REPO & TOKEN AMAN DARI STREAMLIT SECRETS (GRATIS)
+# 🔐 MENGAMBIL DATA REPO & TOKEN AMAN DARI STREAMLIT SECRETS
 # =========================================================================
 try:
     GITHUB_TOKEN = st.secrets["github"]["token"]
@@ -220,7 +220,7 @@ st.markdown("---")
 total_dana = sum(item["biaya"] for item in expense_list)
 sisa_deposit = deposit_amount - total_dana
 
-# Tampilan Ringkasan dalam Metrik Utama (Format Titik Indonesia)
+# Tampilan Ringkasan dalam Metrik Utama
 col_dep, col_total, col_sisa = st.columns(3)
 
 with col_dep:
@@ -264,7 +264,7 @@ if expense_list:
         st.plotly_chart(fig, use_container_width=True)
     st.markdown("---")
 
-# Emoji Dictionary
+# Dictionary Emoji Kategori
 emoji_dict = {
     "Bensin": "⛽",
     "Makan & Minum": "🍽️",
@@ -275,93 +275,95 @@ emoji_dict = {
 }
 
 # =========================================================================
-# 📄 REKAP LAPORAN PENGELUARAN (TAMPILAN SATU LEMBAR PDF UTUH)
+# 📄 REKAP LAPORAN PENGELUARAN (TAMPILAN LEMBARAN TABEL VISUAL)
 # =========================================================================
 st.subheader("📄 Rekap Laporan Pengeluaran (Tampilan Lembaran)")
 
 if expense_list:
-    # Buat format tabel HTML bergaya lembaran kwitansi/PDF resmi
-    html_table = """
-    <style>
-        .rekap-box {
-            background-color: #f9f9f9;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 15px;
-            font-family: Arial, sans-serif;
-            color: #333333;
-        }
-        .rekap-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        .rekap-table th {
-            background-color: #f0f2f6;
-            border-bottom: 2px solid #ccc;
-            padding: 8px;
-            text-align: left;
-            font-size: 13px;
-        }
-        .rekap-table td {
-            border-bottom: 1px solid #eee;
-            padding: 8px;
-            font-size: 13px;
-        }
-        .total-row {
-            font-weight: bold;
-            background-color: #eef2f5;
-        }
-    </style>
-    <div class="rekap-box">
-        <table class="rekap-table">
-            <thead>
-                <tr>
-                    <th style="width: 5%;">No</th>
-                    <th style="width: 25%;">Waktu</th>
-                    <th style="width: 25%;">Kategori</th>
-                    <th style="width: 25%;">Nominal</th>
-                    <th style="width: 20%;">Catatan</th>
-                </tr>
-            </thead>
-            <tbody>
-    """
-    
+    rows_html = ""
     for i, item in enumerate(expense_list, 1):
         biaya_fmt = f"Rp {item['biaya']:,.0f}".replace(",", ".")
         catatan = item['catatan'] if item['catatan'] else "-"
         emoji = emoji_dict.get(item['kategori'], "💰")
         
-        html_table += f"""
-            <tr>
-                <td>{i}</td>
-                <td>{item['waktu']}</td>
-                <td>{emoji} {item['kategori']}</td>
-                <td><b>{biaya_fmt}</b></td>
-                <td>{catatan}</td>
-            </tr>
+        rows_html += f"""
+        <tr>
+            <td style="text-align: center;">{i}</td>
+            <td>{item['waktu']}</td>
+            <td>{emoji} {item['kategori']}</td>
+            <td><b>{biaya_fmt}</b></td>
+            <td>{catatan}</td>
+        </tr>
         """
         
     total_fmt = f"Rp {total_dana:,.0f}".replace(",", ".")
-    html_table += f"""
-            <tr class="total-row">
-                <td colspan="3" style="text-align: right; padding-right: 10px;">TOTAL PENGELUARAN:</td>
-                <td colspan="2" style="color: #d9534f;"><b>{total_fmt}</b></td>
-            </tr>
+    
+    full_html = f"""
+    <style>
+        .rekap-box {{
+            background-color: #ffffff;
+            border: 1px solid #dcdcdc;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333333;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }}
+        .rekap-table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }}
+        .rekap-table th {{
+            background-color: #f1f3f5;
+            border-bottom: 2px solid #cccccc;
+            padding: 10px;
+            text-align: left;
+            font-size: 13px;
+            color: #495057;
+        }}
+        .rekap-table td {{
+            border-bottom: 1px solid #e9ecef;
+            padding: 10px;
+            font-size: 13px;
+        }}
+        .total-row {{
+            font-weight: bold;
+            background-color: #f8f9fa;
+        }}
+    </style>
+    <div class="rekap-box">
+        <table class="rekap-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%; text-align: center;">No</th>
+                    <th style="width: 25%;">Waktu</th>
+                    <th style="width: 25%;">Kategori</th>
+                    <th style="width: 20%;">Nominal</th>
+                    <th style="width: 25%;">Catatan</th>
+                </tr>
+            </thead>
+            <tbody>
+                {rows_html}
+                <tr class="total-row">
+                    <td colspan="3" style="text-align: right; padding-right: 15px;"><b>TOTAL PENGELUARAN:</b></td>
+                    <td colspan="2" style="color: #d9534f; font-size: 14px;"><b>{total_fmt}</b></td>
+                </tr>
             </tbody>
         </table>
     </div>
     """
     
-    # Tampilkan Lembaran Rekap
-    st.markdown(html_table, unsafe_allow_html=True)
+    # Render HTML visual menggunakan st.html
+    st.html(full_html)
 else:
     st.info("Belum ada data pengeluaran untuk ditampilkan di rekap.")
 
 st.markdown("---")
 
 # =========================================================================
-# 📋 TIMELINE KARTU PENGELUARAN (BISA UNTUK HAPUS KARTU BY ADMIN)
+# 📋 TIMELINE KARTU PENGELUARAN (UNTUK KELOLA / HAPUS OLEH ADMIN)
 # =========================================================================
 expense_list_reversed = list(reversed(expense_list))
 
