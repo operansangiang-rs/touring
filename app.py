@@ -6,7 +6,7 @@ import base64
 from datetime import datetime
 import plotly.express as px
 import re
-import time  # Ditambahkan untuk memberi jeda notifikasi
+import time
 
 # =========================================================================
 # 🔐 MENGAMBIL DATA REPO & TOKEN AMAN DARI STREAMLIT SECRETS (GRATIS)
@@ -164,11 +164,9 @@ else:
             })
             save_turing_data({"deposit": deposit_amount, "expenses": expense_list, "categories": categories_list})
             
-            # Tampilkan notifikasi di sidebar + pop-up toast ringkas
             st.sidebar.success("✅ Pengeluaran berhasil disimpan!")
             st.toast("✅ Pengeluaran berhasil disimpan!", icon="🎉")
             
-            # Jeda 1.5 detik agar pengguna sempat melihat notifikasi
             time.sleep(1.5)
             st.rerun()
 
@@ -267,22 +265,56 @@ if expense_list:
         st.plotly_chart(fig, use_container_width=True)
     st.markdown("---")
 
-# Urutkan dari yang paling baru diinput
+# Dictionary Emoji untuk Kategori
+emoji_dict = {
+    "Bensin": "⛽",
+    "Makan & Minum": "🍽️",
+    "Penginapan": "🏨",
+    "Tiket Wisata / Tol": "🎟️",
+    "Perbaikan / Sparepart": "🛠️",
+    "Lain-lain": "📦"
+}
+
+# =========================================================================
+# 📂 MENU REKAPITULASI PER KATEGORI (SPLIT TAB)
+# =========================================================================
+st.subheader("📂 Rekap Pengeluaran Per Kategori")
+
+if expense_list:
+    # Buat Tab untuk Setiap Kategori
+    tabs = st.tabs([f"{emoji_dict.get(cat, '💰')} {cat}" for cat in categories_list])
+    
+    for idx, category in enumerate(categories_list):
+        with tabs[idx]:
+            # Filter pengeluaran sesuai kategori
+            cat_expenses = [e for e in expense_list if e["kategori"] == category]
+            subtotal_cat = sum(e["biaya"] for e in cat_expenses)
+            
+            # Subtotal per kategori
+            st.markdown(f"**Subtotal {category}:** `Rp {subtotal_cat:,.0f}`".replace(",", "."))
+            st.write("---")
+            
+            if cat_expenses:
+                for item in reversed(cat_expenses):
+                    formatted_biaya = f"Rp {item['biaya']:,.0f}".replace(",", ".")
+                    catatan_str = f" | 📝 *{item['catatan']}*" if item['catatan'] else ""
+                    st.write(f"• **{item['waktu']}** — **{formatted_biaya}**{catatan_str}")
+            else:
+                st.caption(f"Belum ada pengeluaran untuk kategori {category}.")
+else:
+    st.info("Belum ada data pengeluaran.")
+
+st.markdown("---")
+
+# =========================================================================
+# 📋 RINCIAN TIMELINE RIWAYAT PENGELUARAN LENGKAP
+# =========================================================================
 expense_list_reversed = list(reversed(expense_list))
 
-st.subheader("📋 Rincian Pengeluaran Lengkap")
+st.subheader("📋 Timeline Pengeluaran (Terbaru)")
 if expense_list_reversed:
     for idx, item in enumerate(expense_list_reversed):
-        emoji_dict = {
-            "Bensin": "⛽",
-            "Makan & Minum": "🍽️",
-            "Penginapan": "🏨",
-            "Tiket Wisata / Tol": "🎟️",
-            "Perbaikan / Sparepart": "🛠️",
-            "Lain-lain": "📦"
-        }
         emoji = emoji_dict.get(item["kategori"], "💰")
-        
         original_idx = len(expense_list) - 1 - idx
         formatted_biaya = f"Rp {item['biaya']:,.0f}".replace(",", ".")
         
