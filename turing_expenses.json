@@ -7,6 +7,13 @@
             "kategori": "Makan & Minum",
             "biaya": 32000,
             "catatan": "Air"
+        },
+        {
+            "waktu": "2026-08-05 04:04",
+            "item": "Makan & Minum",
+            "kategori": "Makan & Minum",
+            "biaya": 120000,
+            "catatan": "sarapan"
         }
     ],
     "categories": [
