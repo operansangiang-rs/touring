@@ -14,6 +14,13 @@
             "kategori": "Makan & Minum",
             "biaya": 120000,
             "catatan": "sarapan"
+        },
+        {
+            "waktu": "2026-08-05 04:04",
+            "item": "Penginapan",
+            "kategori": "Penginapan",
+            "biaya": 200000,
+            "catatan": "extrabed"
         }
     ],
     "categories": [
