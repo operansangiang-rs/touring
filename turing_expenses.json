@@ -21,6 +21,13 @@
             "kategori": "Penginapan",
             "biaya": 200000,
             "catatan": "extrabed"
+        },
+        {
+            "waktu": "2026-08-05 04:04",
+            "item": "Tiket Wisata / Tol",
+            "kategori": "Tiket Wisata / Tol",
+            "biaya": 160000,
+            "catatan": "tiker"
         }
     ],
     "categories": [
