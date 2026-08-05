@@ -24,7 +24,7 @@ DB_FILE = "turing_expenses.json"
 st.set_page_config(
     page_title="Touring Expense Tracker",
     page_icon="🏍️",
-    layout="wide",  # Menggunakan layout wide agar tampilan split kanan-kiri luas
+    layout="centered",
     initial_sidebar_state="expanded"
 )
 
@@ -203,11 +203,12 @@ else:
         st.rerun()
 
 # --- HALAMAN UTAMA ---
-col_judul, col_btn_sync = st.columns([8, 2])
+col_judul, col_btn_sync = st.columns([7, 3])
 
 with col_judul:
     st.title("📊 Biaya Turing")
 with col_btn_sync:
+    st.write("") 
     st.write("") 
     if st.button("🔄 Sinkron Data", use_container_width=True):
         st.rerun()
@@ -219,7 +220,7 @@ st.markdown("---")
 total_dana = sum(item["biaya"] for item in expense_list)
 sisa_deposit = deposit_amount - total_dana
 
-# Tampilan Ringkasan Metrik
+# Tampilan Ringkasan dalam Metrik Utama
 col_dep, col_total, col_sisa = st.columns(3)
 
 with col_dep:
@@ -239,108 +240,9 @@ with col_sisa:
 st.caption(f"📊 Total Catatan Transaksi: **{len(expense_list)} Item**")
 st.markdown("---")
 
-# Dictionary Emoji Kategori
-emoji_dict = {
-    "Bensin": "⛽",
-    "Makan & Minum": "🍽️",
-    "Penginapan": "🏨",
-    "Tiket Wisata / Tol": "🎟️",
-    "Perbaikan / Sparepart": "🛠️",
-    "Lain-lain": "📦"
-}
-
-# =========================================================================
-# 🔀 SPLIT LAYOUT: REKAP TABEL (KIRI) & GRAFIK/EDIT (KANAN)
-# =========================================================================
-col_left, col_right = st.columns([6, 4])
-
-# --- KOLOM KIRI: REKAP LAPORAN (SATU LEMBAR TABEL) ---
-with col_left:
-    st.subheader("📄 Rekap Laporan Pengeluaran")
-    
-    if expense_list:
-        rows_html = ""
-        for i, item in enumerate(expense_list, 1):
-            biaya_fmt = f"Rp {item['biaya']:,.0f}".replace(",", ".")
-            catatan = item['catatan'] if item['catatan'] else "-"
-            emoji = emoji_dict.get(item['kategori'], "💰")
-            
-            rows_html += f"""
-            <tr>
-                <td style="text-align: center;">{i}</td>
-                <td>{item['waktu']}</td>
-                <td>{emoji} {item['kategori']}</td>
-                <td><b>{biaya_fmt}</b></td>
-                <td>{catatan}</td>
-            </tr>
-            """
-            
-        total_fmt = f"Rp {total_dana:,.0f}".replace(",", ".")
-        
-        full_html = f"""
-        <style>
-            .rekap-box {{
-                background-color: #ffffff;
-                border: 1px solid #dcdcdc;
-                border-radius: 8px;
-                padding: 12px;
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                color: #333333;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            }}
-            .rekap-table {{
-                width: 100%;
-                border-collapse: collapse;
-            }}
-            .rekap-table th {{
-                background-color: #f1f3f5;
-                border-bottom: 2px solid #cccccc;
-                padding: 8px;
-                text-align: left;
-                font-size: 12px;
-                color: #495057;
-            }}
-            .rekap-table td {{
-                border-bottom: 1px solid #e9ecef;
-                padding: 8px;
-                font-size: 12px;
-            }}
-            .total-row {{
-                font-weight: bold;
-                background-color: #f8f9fa;
-            }}
-        </style>
-        <div class="rekap-box">
-            <table class="rekap-table">
-                <thead>
-                    <tr>
-                        <th style="width: 5%; text-align: center;">No</th>
-                        <th style="width: 25%;">Waktu</th>
-                        <th style="width: 25%;">Kategori</th>
-                        <th style="width: 20%;">Nominal</th>
-                        <th style="width: 25%;">Catatan</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows_html}
-                    <tr class="total-row">
-                        <td colspan="3" style="text-align: right; padding-right: 10px;"><b>TOTAL PENGELUARAN:</b></td>
-                        <td colspan="2" style="color: #d9534f; font-size: 13px;"><b>{total_fmt}</b></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        """
-        
-        st.html(full_html)
-    else:
-        st.info("Belum ada data pengeluaran untuk ditampilkan.")
-
-# --- KOLOM KANAN: GRAFIK & KELOLA ITEM ---
-with col_right:
-    # 1. GRAFIK DISTRIBUSI BIAYA
-    st.subheader("🍕 Distribusi Biaya")
-    if expense_list:
+# --- FITUR GRAFIK ---
+if expense_list:
+    with st.expander("🍕 Lihat Grafik Distribusi Biaya"):
         category_totals = {}
         for item in expense_list:
             cat = item["kategori"]
@@ -353,23 +255,126 @@ with col_right:
         fig = px.pie(
             names=chart_labels, 
             values=chart_values, 
-            hole=0.35,
+            hole=0.3,
             color_discrete_sequence=px.colors.qualitative.Pastel
         )
         fig.update_traces(textposition='inside', textinfo='percent+label')
-        fig.update_layout(margin=dict(t=5, b=5, l=5, r=5), showlegend=False, height=220)
+        fig.update_layout(margin=dict(t=10, b=10, l=10, r=10), showlegend=False, height=300)
         
         st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.caption("Grafik akan muncul jika ada data.")
-
     st.markdown("---")
 
-    # 2. KELOLA / HAPUS CATATAN (EXPANDER RINGKAS)
-    st.subheader("🛠️ Kelola / Hapus Catatan")
-    expense_list_reversed = list(reversed(expense_list))
+# Dictionary Emoji Kategori
+emoji_dict = {
+    "Bensin": "⛽",
+    "Makan & Minum": "🍽️",
+    "Penginapan": "🏨",
+    "Tiket Wisata / Tol": "🎟️",
+    "Perbaikan / Sparepart": "🛠️",
+    "Lain-lain": "📦"
+}
 
-    if expense_list_reversed:
+# =========================================================================
+# 📄 REKAP LAPORAN PENGELUARAN (JENDELA DENGAN SCROLLBAR MANDIRI)
+# =========================================================================
+st.subheader("📄 Rekap Laporan Pengeluaran")
+
+if expense_list:
+    rows_html = ""
+    for i, item in enumerate(expense_list, 1):
+        biaya_fmt = f"Rp {item['biaya']:,.0f}".replace(",", ".")
+        catatan = item['catatan'] if item['catatan'] else "-"
+        emoji = emoji_dict.get(item['kategori'], "💰")
+        
+        rows_html += f"""
+        <tr>
+            <td style="text-align: center;">{i}</td>
+            <td>{item['waktu']}</td>
+            <td>{emoji} {item['kategori']}</td>
+            <td><b>{biaya_fmt}</b></td>
+            <td>{catatan}</td>
+        </tr>
+        """
+        
+    total_fmt = f"Rp {total_dana:,.0f}".replace(",", ".")
+    
+    # CSS: max-height: 350px & overflow-y: auto untuk membuat jendela scroll
+    full_html = f"""
+    <style>
+        .rekap-scroll-box {{
+            max-height: 350px;
+            overflow-y: auto;
+            border: 1px solid #dcdcdc;
+            border-radius: 8px;
+            background-color: #ffffff;
+            padding: 10px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }}
+        .rekap-table {{
+            width: 100%;
+            border-collapse: collapse;
+        }}
+        .rekap-table th {{
+            position: sticky;
+            top: 0;
+            background-color: #f1f3f5;
+            border-bottom: 2px solid #cccccc;
+            padding: 10px;
+            text-align: left;
+            font-size: 13px;
+            color: #495057;
+            z-index: 10;
+        }}
+        .rekap-table td {{
+            border-bottom: 1px solid #e9ecef;
+            padding: 10px;
+            font-size: 13px;
+            color: #333333;
+        }}
+        .total-row {{
+            font-weight: bold;
+            background-color: #f8f9fa;
+        }}
+    </style>
+    <div class="rekap-scroll-box">
+        <table class="rekap-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%; text-align: center;">No</th>
+                    <th style="width: 25%;">Waktu</th>
+                    <th style="width: 25%;">Kategori</th>
+                    <th style="width: 20%;">Nominal</th>
+                    <th style="width: 25%;">Catatan</th>
+                </tr>
+            </thead>
+            <tbody>
+                {rows_html}
+                <tr class="total-row">
+                    <td colspan="3" style="text-align: right; padding-right: 15px;"><b>TOTAL PENGELUARAN:</b></td>
+                    <td colspan="2" style="color: #d9534f; font-size: 14px;"><b>{total_fmt}</b></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    """
+    
+    st.html(full_html)
+else:
+    st.info("Belum ada data pengeluaran untuk ditampilkan di rekap.")
+
+st.markdown("---")
+
+# =========================================================================
+# 📋 TIMELINE KARTU PENGELUARAN (JENDELA CONTAINER MANDIRI)
+# =========================================================================
+st.subheader("📋 Timeline Pengeluaran (Bisa Kelola/Hapus)")
+
+expense_list_reversed = list(reversed(expense_list))
+
+if expense_list_reversed:
+    # Membungkus daftar item ke dalam container bawaan Streamlit ber-height khusus (Scrollable Box)
+    with st.container(height=350):
         for idx, item in enumerate(expense_list_reversed):
             emoji = emoji_dict.get(item["kategori"], "💰")
             original_idx = len(expense_list) - 1 - idx
@@ -378,16 +383,14 @@ with col_right:
             with st.expander(f"{emoji} {item['kategori']} — {formatted_biaya}"):
                 st.write(f"📅 **Waktu:** {item['waktu']}")
                 if item['catatan']:
-                    st.info(f"📝 {item['catatan']}")
+                    st.info(f"📝 **Catatan:**\n{item['catatan']}")
                     
                 if st.session_state.is_admin:
-                    if st.button("🗑️ Hapus", key=f"del_{original_idx}", use_container_width=True):
+                    if st.button("🗑️ Hapus Catatan Ini", key=f"del_{original_idx}", use_container_width=True):
                         expense_list.pop(original_idx)
                         save_turing_data({"deposit": deposit_amount, "expenses": expense_list, "categories": categories_list})
-                        st.success("Berhasil dihapus!")
-                        time.sleep(1)
+                        st.success("Catatan berhasil dihapus!")
+                        time.sleep(1.2)
                         st.rerun()
-                else:
-                    st.caption("🔒 Login admin di sidebar untuk menghapus.")
-    else:
-        st.caption("Belum ada data untuk dikelola.")
+else:
+    st.info("Belum ada pengeluaran yang dicatat.")
