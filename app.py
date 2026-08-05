@@ -366,7 +366,7 @@ st.markdown("---")
 # =========================================================================
 # 📋 TIMELINE KARTU PENGELUARAN (JENDELA CONTAINER MANDIRI)
 # =========================================================================
-st.subheader("📋 Timeline Pengeluaran (Bisa Kelola/Hapus)")
+st.subheader("📋 Timeline Pengeluaran ")
 
 expense_list_reversed = list(reversed(expense_list))
 
