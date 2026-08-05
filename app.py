@@ -115,7 +115,6 @@ if not st.session_state.is_admin:
             st.sidebar.error("Password salah! Silakan coba lagi.")
 else:
     st.sidebar.success("Status: Admin Aktif (Mas Lian)")
-    
     st.sidebar.write("---")
     
     # 💵 PENGATURAN DEPOSIT UANG (KHUSUS ADMIN)
@@ -265,7 +264,7 @@ if expense_list:
         st.plotly_chart(fig, use_container_width=True)
     st.markdown("---")
 
-# Dictionary Emoji untuk Kategori
+# Emoji Dictionary
 emoji_dict = {
     "Bensin": "⛽",
     "Makan & Minum": "🍽️",
@@ -276,42 +275,97 @@ emoji_dict = {
 }
 
 # =========================================================================
-# 📂 MENU REKAPITULASI PER KATEGORI (SPLIT TAB)
+# 📄 REKAP LAPORAN PENGELUARAN (TAMPILAN SATU LEMBAR PDF UTUH)
 # =========================================================================
-st.subheader("📂 Rekap Pengeluaran Per Kategori")
+st.subheader("📄 Rekap Laporan Pengeluaran (Tampilan Lembaran)")
 
 if expense_list:
-    # Buat Tab untuk Setiap Kategori
-    tabs = st.tabs([f"{emoji_dict.get(cat, '💰')} {cat}" for cat in categories_list])
+    # Buat format tabel HTML bergaya lembaran kwitansi/PDF resmi
+    html_table = """
+    <style>
+        .rekap-box {
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: Arial, sans-serif;
+            color: #333333;
+        }
+        .rekap-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .rekap-table th {
+            background-color: #f0f2f6;
+            border-bottom: 2px solid #ccc;
+            padding: 8px;
+            text-align: left;
+            font-size: 13px;
+        }
+        .rekap-table td {
+            border-bottom: 1px solid #eee;
+            padding: 8px;
+            font-size: 13px;
+        }
+        .total-row {
+            font-weight: bold;
+            background-color: #eef2f5;
+        }
+    </style>
+    <div class="rekap-box">
+        <table class="rekap-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">No</th>
+                    <th style="width: 25%;">Waktu</th>
+                    <th style="width: 25%;">Kategori</th>
+                    <th style="width: 25%;">Nominal</th>
+                    <th style="width: 20%;">Catatan</th>
+                </tr>
+            </thead>
+            <tbody>
+    """
     
-    for idx, category in enumerate(categories_list):
-        with tabs[idx]:
-            # Filter pengeluaran sesuai kategori
-            cat_expenses = [e for e in expense_list if e["kategori"] == category]
-            subtotal_cat = sum(e["biaya"] for e in cat_expenses)
-            
-            # Subtotal per kategori
-            st.markdown(f"**Subtotal {category}:** `Rp {subtotal_cat:,.0f}`".replace(",", "."))
-            st.write("---")
-            
-            if cat_expenses:
-                for item in reversed(cat_expenses):
-                    formatted_biaya = f"Rp {item['biaya']:,.0f}".replace(",", ".")
-                    catatan_str = f" | 📝 *{item['catatan']}*" if item['catatan'] else ""
-                    st.write(f"• **{item['waktu']}** — **{formatted_biaya}**{catatan_str}")
-            else:
-                st.caption(f"Belum ada pengeluaran untuk kategori {category}.")
+    for i, item in enumerate(expense_list, 1):
+        biaya_fmt = f"Rp {item['biaya']:,.0f}".replace(",", ".")
+        catatan = item['catatan'] if item['catatan'] else "-"
+        emoji = emoji_dict.get(item['kategori'], "💰")
+        
+        html_table += f"""
+            <tr>
+                <td>{i}</td>
+                <td>{item['waktu']}</td>
+                <td>{emoji} {item['kategori']}</td>
+                <td><b>{biaya_fmt}</b></td>
+                <td>{catatan}</td>
+            </tr>
+        """
+        
+    total_fmt = f"Rp {total_dana:,.0f}".replace(",", ".")
+    html_table += f"""
+            <tr class="total-row">
+                <td colspan="3" style="text-align: right; padding-right: 10px;">TOTAL PENGELUARAN:</td>
+                <td colspan="2" style="color: #d9534f;"><b>{total_fmt}</b></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    """
+    
+    # Tampilkan Lembaran Rekap
+    st.markdown(html_table, unsafe_allow_html=True)
 else:
-    st.info("Belum ada data pengeluaran.")
+    st.info("Belum ada data pengeluaran untuk ditampilkan di rekap.")
 
 st.markdown("---")
 
 # =========================================================================
-# 📋 RINCIAN TIMELINE RIWAYAT PENGELUARAN LENGKAP
+# 📋 TIMELINE KARTU PENGELUARAN (BISA UNTUK HAPUS KARTU BY ADMIN)
 # =========================================================================
 expense_list_reversed = list(reversed(expense_list))
 
-st.subheader("📋 Timeline Pengeluaran (Terbaru)")
+st.subheader("📋 Timeline Pengeluaran (Bisa Kelola/Hapus)")
 if expense_list_reversed:
     for idx, item in enumerate(expense_list_reversed):
         emoji = emoji_dict.get(item["kategori"], "💰")
@@ -331,4 +385,4 @@ if expense_list_reversed:
                     time.sleep(1.2)
                     st.rerun()
 else:
-    st.info("Belum ada pengeluaran yang dicatat. Silakan masukkan password admin di sidebar untuk mulai mengisi data!")
+    st.info("Belum ada pengeluaran yang dicatat.")
