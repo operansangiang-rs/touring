@@ -275,93 +275,91 @@ emoji_dict = {
 }
 
 # =========================================================================
-# 📄 REKAP LAPORAN PENGELUARAN (JENDELA DENGAN SCROLLBAR MANDIRI)
+# 📄 REKAP LAPORAN PENGELUARAN (DIBikin EXPANDER / JENDELA LIPAT)
 # =========================================================================
-st.subheader("📄 Rekap Laporan Pengeluaran")
-
-if expense_list:
-    rows_html = ""
-    for i, item in enumerate(expense_list, 1):
-        biaya_fmt = f"Rp {item['biaya']:,.0f}".replace(",", ".")
-        catatan = item['catatan'] if item['catatan'] else "-"
-        emoji = emoji_dict.get(item['kategori'], "💰")
+with st.expander("📄 Buka Rekap Laporan Pengeluaran (Tabel)"):
+    if expense_list:
+        rows_html = ""
+        for i, item in enumerate(expense_list, 1):
+            biaya_fmt = f"Rp {item['biaya']:,.0f}".replace(",", ".")
+            catatan = item['catatan'] if item['catatan'] else "-"
+            emoji = emoji_dict.get(item['kategori'], "💰")
+            
+            rows_html += f"""
+            <tr>
+                <td style="text-align: center;">{i}</td>
+                <td>{item['waktu']}</td>
+                <td>{emoji} {item['kategori']}</td>
+                <td><b>{biaya_fmt}</b></td>
+                <td>{catatan}</td>
+            </tr>
+            """
+            
+        total_fmt = f"Rp {total_dana:,.0f}".replace(",", ".")
         
-        rows_html += f"""
-        <tr>
-            <td style="text-align: center;">{i}</td>
-            <td>{item['waktu']}</td>
-            <td>{emoji} {item['kategori']}</td>
-            <td><b>{biaya_fmt}</b></td>
-            <td>{catatan}</td>
-        </tr>
+        full_html = f"""
+        <style>
+            .rekap-scroll-box {{
+                max-height: 350px;
+                overflow-y: auto;
+                border: 1px solid #dcdcdc;
+                border-radius: 8px;
+                background-color: #ffffff;
+                padding: 10px;
+                box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+                margin-bottom: 10px;
+            }}
+            .rekap-table {{
+                width: 100%;
+                border-collapse: collapse;
+            }}
+            .rekap-table th {{
+                position: sticky;
+                top: 0;
+                background-color: #f1f3f5;
+                border-bottom: 2px solid #cccccc;
+                padding: 10px;
+                text-align: left;
+                font-size: 13px;
+                color: #495057;
+                z-index: 10;
+            }}
+            .rekap-table td {{
+                border-bottom: 1px solid #e9ecef;
+                padding: 10px;
+                font-size: 13px;
+                color: #333333;
+            }}
+            .total-row {{
+                font-weight: bold;
+                background-color: #f8f9fa;
+            }}
+        </style>
+        <div class="rekap-scroll-box">
+            <table class="rekap-table">
+                <thead>
+                    <tr>
+                        <th style="width: 5%; text-align: center;">No</th>
+                        <th style="width: 25%;">Waktu</th>
+                        <th style="width: 25%;">Kategori</th>
+                        <th style="width: 20%;">Nominal</th>
+                        <th style="width: 25%;">Catatan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows_html}
+                    <tr class="total-row">
+                        <td colspan="3" style="text-align: right; padding-right: 15px;"><b>TOTAL PENGELUARAN:</b></td>
+                        <td colspan="2" style="color: #d9534f; font-size: 14px;"><b>{total_fmt}</b></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
         """
         
-    total_fmt = f"Rp {total_dana:,.0f}".replace(",", ".")
-    
-    # CSS: max-height: 350px & overflow-y: auto untuk membuat jendela scroll
-    full_html = f"""
-    <style>
-        .rekap-scroll-box {{
-            max-height: 350px;
-            overflow-y: auto;
-            border: 1px solid #dcdcdc;
-            border-radius: 8px;
-            background-color: #ffffff;
-            padding: 10px;
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-        }}
-        .rekap-table {{
-            width: 100%;
-            border-collapse: collapse;
-        }}
-        .rekap-table th {{
-            position: sticky;
-            top: 0;
-            background-color: #f1f3f5;
-            border-bottom: 2px solid #cccccc;
-            padding: 10px;
-            text-align: left;
-            font-size: 13px;
-            color: #495057;
-            z-index: 10;
-        }}
-        .rekap-table td {{
-            border-bottom: 1px solid #e9ecef;
-            padding: 10px;
-            font-size: 13px;
-            color: #333333;
-        }}
-        .total-row {{
-            font-weight: bold;
-            background-color: #f8f9fa;
-        }}
-    </style>
-    <div class="rekap-scroll-box">
-        <table class="rekap-table">
-            <thead>
-                <tr>
-                    <th style="width: 5%; text-align: center;">No</th>
-                    <th style="width: 25%;">Waktu</th>
-                    <th style="width: 25%;">Kategori</th>
-                    <th style="width: 20%;">Nominal</th>
-                    <th style="width: 25%;">Catatan</th>
-                </tr>
-            </thead>
-            <tbody>
-                {rows_html}
-                <tr class="total-row">
-                    <td colspan="3" style="text-align: right; padding-right: 15px;"><b>TOTAL PENGELUARAN:</b></td>
-                    <td colspan="2" style="color: #d9534f; font-size: 14px;"><b>{total_fmt}</b></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    """
-    
-    st.html(full_html)
-else:
-    st.info("Belum ada data pengeluaran untuk ditampilkan di rekap.")
+        st.html(full_html)
+    else:
+        st.info("Belum ada data pengeluaran untuk ditampilkan di rekap.")
 
 st.markdown("---")
 
@@ -373,7 +371,6 @@ st.subheader("📋 Timeline Pengeluaran (Bisa Kelola/Hapus)")
 expense_list_reversed = list(reversed(expense_list))
 
 if expense_list_reversed:
-    # Membungkus daftar item ke dalam container bawaan Streamlit ber-height khusus (Scrollable Box)
     with st.container(height=350):
         for idx, item in enumerate(expense_list_reversed):
             emoji = emoji_dict.get(item["kategori"], "💰")
